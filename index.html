@@ -5,26 +5,41 @@ green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 
-# Check if user is root
-[ $(id -u) != "0" ] && { echo -e "${red}Error:${plain} Error: You must be root to run this script"; exit 1; }
+set -e
 
-if [ ! -n "$1" ] ;then
-  echo -e "${red}Error:${plain} You must specify a hostname."
+# Check if user is root
+[ $(id -u) != "0" ] && { echo -e "${red}[ERROR]${plain} Error: You must be root to run this script"; exit 1; }
+
+while getopts ":H:" opt; do 
+  case $opt in 
+    H) 
+      sid=$OPTARG
+      echo -e "${green}[INFO]${plain} Server ID: $sid"
+      ;; 
+    *) 
+      echo -e "${red}[ERROR]${plain} Unknown Options Detected."
+      exit 1 
+      ;; 
+  esac 
+done 
+
+if [ ! -n "$sid" ] ;then
+  echo -e "${red}[ERROR]${plain} You must specify a hostname."
   exit
 fi
 
 #Hostname
-echo -e "${green}Info:${plain} Setting up hostname $1..."
-hostname "ecs-$1.fastsp.network"
-echo -e "ecs-$1.fastsp.network" > /etc/hostname
-sed -i "s/$HOSTNAME/ecs-$1.fastsp.network/g" /etc/hosts
-echo -e "${green}Info:${plain} Hostname Done!"
+echo -e "${green}[INFO]${plain} Setting up hostname ecs-$sid.fspn.network..."
+hostname "ecs-$sid.fspn.network"
+echo -e "ecs-$sid.fspn.network" > /etc/hostname
+sed -i "s/$HOSTNAME/ecs-$sid.fspn.network/g" /etc/hosts
+echo -e "${green}[INFO]${plain} Hostname Done."
 
 #BBR
-echo -e "${green}Info:${plain} Setting up BBR..."
+echo -e "${green}[INFO]${plain} Setting up BBR..."
 param=$(sysctl net.ipv4.tcp_congestion_control | awk '{print $3}')
 if [[ x"${param}" == x"bbr" ]]; then
-    echo -e "${green}Info:${plain} TCP BBR has already been installed. nothing to do..."
+    echo -e "${green}[INFO]${plain} TCP BBR has already been installed. nothing to do..."
 else
     sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
     sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
@@ -33,13 +48,13 @@ else
     sysctl -p >/dev/null 2>&1
 fi
 
-echo -e "${green}Info:${plain} BBR Done!"
+echo -e "${green}[INFO]${plain} BBR Done."
 
 #SWAP
-echo -e "${green}Info:${plain} Setting up SWAP..."
+echo -e "${green}[INFO]${plain} Setting up SWAP..."
 if [ -e /swap ]
 then
-  echo -e "${green}Info:${plain} SWAP has already been installed. nothing to do..."
+  echo -e "${green}[INFO]${plain} SWAP has already been installed. nothing to do..."
 else
   dd if=/dev/zero of=/swap bs=1M count=1024
   chmod 0600 /swap
@@ -47,54 +62,50 @@ else
   swapon /swap
   echo '/swap none swap defaults 0 0' >> /etc/fstab
 fi
-echo -e "${green}Info:${plain} SWAP Done!"
+echo -e "${green}[INFO]${plain} SWAP Done."
 
 #LOGIN MOTD
-echo -e "${green}Info:${plain} Setting up MOTD..."
-motdpath = '$motdpath'
+echo -e "${green}[INFO]${plain} Setting up MOTD..."
+motdpath='/etc/update-motd.d'
 cat > $motdpath/00-header <<EOL
 #!/bin/sh
-printf  "Welcome to $1 Server!\n"
+printf  "Welcome to $sid Server!\n"
 printf "\n---------------------"
 EOL
-rm $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
-echo -e "${green}Info:${plain} MOTD Done!"
+rm -rf $motdpath/10-help-text $motdpath/50-motd-news $motdpath/80-esm $motdpath/95-hwe-eol $motdpath/80-livepatch
+echo -e "${green}[INFO]${plain} MOTD Done!"
 
 #Docker
-echo -e "${green}Info:${plain} Setting up Docker..."
-sudo apt-get remove docker docker-engine docker.io
-sudo apt-get update
-sudo apt-get install -y \
+echo -e "${green}[INFO]${plain} Setting up Docker..."
+sudo apt update
+sudo apt install -y \
      apt-transport-https \
      ca-certificates \
      curl \
-     software-properties-common
+     software-properties-common \
+     git
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo apt-key fingerprint 0EBFCD88
 sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
-sudo apt-get update
-sudo apt-get install docker-ce -y
+sudo apt update
+sudo apt install docker-ce -y
 sudo docker version
-#echo '{ "registry-mirrors": ["https://registry.docker-cn.com"] }' > /etc/docker/daemon.json
-sudo docker run hello-world
-echo -e "${yellow}WARNING:${plain} Don't forget to set newest docker compose version!"
-sudo curl -L "https://github.com/docker/compose/releases/download/1.23.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# get latest docker compose
+# THX https://gist.github.com/deviantony/2b5078fe1675a5fedabf1de3d1f2652a
+COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+echo -e "${green}[INFO]${plain} Lastest Docker Compose version: $COMPOSE_VERSION"
+sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
-echo -e "${green}Info:${plain} Docker Done!"
-
-#Pikachu
-echo -e "${green}Info:${plain} Setting up Pikachu..."
-apt-get install git -y
-cd /opt
-echo -e "Hostname=$1" > /opt/Pikachu/.env
-echo -e "${green}Info:${plain} Pikachu Done!"
+sudo groupadd docker
+echo -e "${green}[INFO]${plain} Docker Done!"
 
 #logrotate
-echo -e "${green}Info:${plain} Setting up logrotate..."
+echo -e "${green}[INFO]${plain} Setting up logrotate..."
 cat > /etc/logrotate_nginx.conf <<EOL
 /data/www/*/nginx.log {
     daily
@@ -113,38 +124,36 @@ cat > /etc/logrotate_nginx.conf <<EOL
 }
 EOL
 crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
-echo -e "${green}Info:${plain} logrotate Done!"
+echo -e "${green}[INFO]${plain} logrotate Done."
 
-#User
-echo -e "${green}Info:${plain} Setting up user..."
+#Ketchum
+echo -e "${green}[INFO]${plain} Setting up Ketchum..."
 useradd Ketchum
 chage -d 0 Ketchum
 passwd -d Ketchum
 mkdir /home/Ketchum/.ssh/ -p
-wget https://raw.githubusercontent.com/fastsp/Ketchum/master/authorized_keys -O /home/Ketchum/.ssh/authorized_keys
+sudo curl -LN "https://raw.githubusercontent.com/fspnet/Ketchum/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
 chown Ketchum:Ketchum /home/Ketchum -R
 chmod 644 /home/Ketchum/.ssh/authorized_keys
 echo "Ketchum  ALL=(ALL:ALL) ALL" >> /etc/sudoers
-echo -e "${green}Info:${plain} User Done!"
+echo -e "${green}[INFO]${plain} User Done."
 
 #SSH
-echo -e "${green}Info:${plain} Setting up SSH..."
+echo -e "${green}[INFO]${plain} Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
-    sed -i "s@^#Port.*@&\nPort 36015@" /etc/ssh/sshd_config
+    sed -i "s@^#Port.*@&\nPort 13613@" /etc/ssh/sshd_config
 elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
-    sed -i "s@^Port.*@Port 36015@" /etc/ssh/sshd_config
+    sed -i "s@^Port.*@Port 13613@" /etc/ssh/sshd_config
 fi
 
 sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
 systemctl restart ssh
-echo -e "${green}Info:${plain} SSH Done!"
+echo -e "${green}[INFO]${plain} SSH Done."
 
-#ZSH
-echo -e "${green}Info:${plain} Setting up ZSH..."
-apt-get install zsh -y
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-echo -e "${green}Info:${plain} ZSH Done!"
+#Other
+echo 'soft nofile 65535\nhard nofile 65535' >> /etc/security/limits.conf
+sudo curl -LN "https://gist.githubusercontent.com/2er7/6e12cad05ff6c00c880062459c6e142c/raw/65d39d0ed8da51f2de24bd91d3f63c8ca5da34d4/sysctl.conf" -o /etc/sysctl.conf
+sudo sysctl --system
 
-
-echo -e "${green}Info:${plain} INIT Done!\nDON'T FORGET DEL DEFAULT USER!"
+echo -e "${green}[INFO]${plain} INIT Done.\nDON'T FORGET DEL DEFAULT USER!"
 exit 0;
