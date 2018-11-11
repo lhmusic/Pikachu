@@ -5,7 +5,5 @@ FSP Network Gen2 Server Infrastructure - deploy.sh
 ## Usage
 
 ```sh
-curl -sL https://go.fspn.network/ | sudo bash -h $hostname
+wget -O deploy.sh https://go.fspn.network && sudo chmod +x deploy.sh && sudo bash deploy.sh -H $hostname && sudo rm -rf deploy.sh
 ```
-
-based [LFS-Bash-Deploy](https://github.com/lwl12/LFS-Bash-Deploy)
