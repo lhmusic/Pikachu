@@ -135,6 +135,7 @@ mkdir /home/Ketchum/.ssh/ -p
 sudo curl -LN "https://raw.githubusercontent.com/fspnet/Ketchum/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
 chown Ketchum:Ketchum /home/Ketchum -R
 chmod 644 /home/Ketchum/.ssh/authorized_keys
+sudo usermod -aG docker Ketchum
 echo "Ketchum  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 echo -e "${green}[INFO]${plain} User Done."
 
