@@ -14,31 +14,26 @@ echoLog (){
         echo -e "${red}[ERROR]${plain} $2"
     elif [[ $1 == "WARN" ]]; then
         echo -e "${yellow}[WARN]${plain} $2"
+    elif [[ $1 == "RED" ]]; then
+        echo -e "${red}$2${plain}"
+    elif [[ $1 == "GREEN" ]]; then
+        echo -e "${green}$2${plain}"
+    elif [[ $1 == "YELLOW" ]]; then
+        echo -e "${yellow}$2${plain}"
     fi
 }
 
 # Check if user is root
 [ $(id -u) != "0" ] && { echoLog ERROR "You must be root to run this script"; exit 1; }
 
-while getopts ":H:" opt; do 
-  case $opt in 
-    H) 
-      sid=$OPTARG
-      echoLog INFO "Server ID: $sid"
-      ;; 
-    *) 
-      echoLog ERROR "Unknown Options Detected."
-      exit 1 
-      ;; 
-  esac 
-done 
-
-if [ ! -n "$sid" ] ;then
-  echoLog ERROR "You must specify a hostname."
+if [ -z "$1" ] ;then
+  echoLog ERROR "You must specify a hostname, like:"
+  echoLog GREEN "curl -sSL https://go.fspn.network | sudo bash -s [hostname]"
   exit
 fi
 
-#Hostname
+# Hostname
+sid=$1
 echoLog INFO "Setting up hostname ecs-$sid.fspn.network..."
 hostname "ecs-$sid.fspn.network"
 echo -e "ecs-$sid.fspn.network" > /etc/hostname
@@ -61,7 +56,7 @@ fi
 
 echoLog INFO "BBR Done."
 
-#SWAP
+# SWAP
 echoLog INFO "Setting up SWAP..."
 if [ -e /swap ] || [ -e /swapfile ]
 then
@@ -75,9 +70,8 @@ else
 fi
 echoLog INFO "SWAP Done."
 
-#Docker
+# Docker
 echoLog INFO "Setting up Docker..."
-sudo apt remove docker docker-engine docker.io
 sudo apt install -y \
      apt-transport-https \
      ca-certificates \
@@ -104,15 +98,16 @@ docker-compose --version
 echoLog INFO "Docker Done."
 
 # 1Password
-1PASSWORD_VERSION="v0.5.4"
+ONEPASSWORD_VERSION='v0.5.4'
 echoLog INFO "Setting up 1Password CLI"
 sudo apt install curl jq pwgen gnupg unzip -y|| exit $?
 mkdir -p /usr/local/bin
 chmod 755 /usr/local/bin
-sudo curl -fSL "https://cache.agilebits.com/dist/1P/op/pkg/${1PASSWORD_VERSION}/op_linux_amd64_${1PASSWORD_VERSION}.zip" -o op.zip | unzip op.zip -d /usr/local/bin -x op.sig
+sudo curl -fSL "https://cache.agilebits.com/dist/1P/op/pkg/v0.5.4/op_linux_amd64_v0.5.4.zip" -o op.zip
+sudo unzip ~/op.zip -d /usr/local/bin -x op.sig && rm -rf ~/op.zip
 op --version
 
-#logrotate
+# logrotate
 echoLog INFO "Setting up logrotate..."
 cat > /etc/logrotate_nginx.conf <<EOL
 /opt/nginx/log/*/nginx.log {
@@ -134,7 +129,7 @@ EOL
 crontab -l | { cat; echo "0 0 * * * /usr/sbin/logrotate --force /etc/logrotate_nginx.conf"; } | crontab -
 echoLog INFO "logrotate Done."
 
-#Ketchum
+# Ketchum
 echoLog INFO "Setting up Ketchum..."
 useradd Ketchum
 chage -d 0 Ketchum
@@ -146,7 +141,7 @@ chmod 644 /home/Ketchum/.ssh/authorized_keys
 echo "Ketchum  ALL=(ALL:ALL) ALL" >> /etc/sudoers
 echoLog INFO "User Done."
 
-#SSH
+# SSH
 echoLog INFO " Setting up SSH..."
 if [ -z "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^#Port.*@&\nPort 13613@" /etc/ssh/sshd_config
@@ -158,10 +153,11 @@ sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/ssh
 systemctl restart ssh
 echoLog INFO "SSH Done."
 
-#Other
+# Other
 echo 'soft nofile 65535\nhard nofile 65535' >> /etc/security/limits.conf
 sudo curl -LN "https://github.com/FSPNet/Pikachu/raw/master/conf/sysctl.conf" -o /etc/sysctl.conf
 sudo sysctl --system
 
-echoLog INFO "INIT Done.\nDON'T FORGET DEL DEFAULT USER!"
+echoLog INFO "INIT Done."
+echoLog RED "DON'T FORGET DEL DEFAULT USER"
 exit 0;
