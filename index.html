@@ -153,6 +153,10 @@ sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/ssh
 systemctl restart ssh
 echoLog INFO "SSH Done."
 
+# thefuck
+echoLog INFO " Setting up thefuck..."
+sudo apt install python3-dev python3-pip python3-setuptools -y
+sudo pip3 install thefuck
 # Other
 echo 'soft nofile 65535\nhard nofile 65535' >> /etc/security/limits.conf
 sudo curl -LN "https://github.com/FSPNet/Pikachu/raw/master/conf/sysctl.conf" -o /etc/sysctl.conf
