@@ -138,7 +138,7 @@ mkdir /home/Ketchum/.ssh/ -p
 sudo curl -LN "https://github.com/FSPNet/Ketchum/raw/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
 chown Ketchum:Ketchum /home/Ketchum -R
 chmod 644 /home/Ketchum/.ssh/authorized_keys
-echo "Ketchum  ALL=(ALL:ALL) ALL" >> /etc/sudoers
+echo "Ketchum  ALL=(ALL:ALL) NOPASSWD :ALL" >> /etc/sudoers
 echoLog INFO "User Done."
 
 # SSH
@@ -149,7 +149,7 @@ elif [ -n "`grep ^Port /etc/ssh/sshd_config`" ]; then
     sed -i "s@^Port.*@Port 13613@" /etc/ssh/sshd_config
 fi
 
-sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
+sudo sed -i "s@^#PasswordAuthentication.*@&\nPasswordAuthentication no@" /etc/ssh/sshd_config
 systemctl restart ssh
 echoLog INFO "SSH Done."
 
