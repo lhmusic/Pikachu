@@ -1,9 +1,9 @@
 # Pikachu
 
-FSP Network Gen2 Server Infrastructure - deploy.sh
+Union Music Server Infrastructure - deploy.sh
 
 ## Usage
 
 ```sh
-curl -sSL https://go.fspn.network | sudo bash -s [hostname]
+curl -sSL https://go.rr.wtf | sudo bash -s [hostname]
 ```
