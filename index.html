@@ -37,8 +37,7 @@ sid=$1
 echoLog INFO "Setting up hostname ecs-$sid.rr.wtf..."
 hostname "ecs-$sid.rr.wtf"
 echo -e "ecs-$sid.rr.wtf" > /etc/hostname
-sed -i "s/$HOSTNAME/ecs-$sid.
-.network/g" /etc/hosts
+sed -i "s/$HOSTNAME/ecs-$sid.rr.wtf/g" /etc/hosts
 echoLog INFO "Hostname Done."
 
 # BBR
@@ -92,7 +91,7 @@ sudo docker version
 # THX https://gist.github.com/deviantony/2b5078fe1675a5fedabf1de3d1f2652a
 COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
 echoLog INFO "Lastest Docker Compose version: $COMPOSE_VERSION"
-sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 echoLog INFO "Docker Done."
@@ -100,7 +99,7 @@ echoLog INFO "Docker Done."
 # 1Password
 ONEPASSWORD_VERSION='v0.5.7'
 echoLog INFO "Setting up 1Password CLI"
-sudo apt install curl jq pwgen gnupg unzip -y|| exit $?
+sudo apt install jq pwgen gnupg unzip -y|| exit $?
 mkdir -p /usr/local/bin
 chmod 755 /usr/local/bin
 sudo curl -fSL "https://cache.agilebits.com/dist/1P/op/pkg/${ONEPASSWORD_VERSION}/op_linux_amd64_${ONEPASSWORD_VERSION}.zip" -o op.zip
@@ -135,7 +134,7 @@ useradd Ketchum
 chage -d 0 Ketchum
 passwd -d Ketchum
 mkdir /home/Ketchum/.ssh/ -p
-sudo curl -LN "https://github.com/FSPNet/Ketchum/raw/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
+sudo curl -LN "https://github.com/lhmusic/Ketchum/raw/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
 chown Ketchum:Ketchum /home/Ketchum -R
 chmod 644 /home/Ketchum/.ssh/authorized_keys
 echo "Ketchum  ALL=(ALL:ALL) NOPASSWD :ALL" >> /etc/sudoers
@@ -168,13 +167,13 @@ sudo apt install zsh -y
 git clone https://github.com/robbyrussell/oh-my-zsh.git /home/Ketchum/.oh-my-zsh
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /home/Ketchum/.oh-my-zsh/plugins/zsh-syntax-highlighting
 git clone https://github.com/zsh-users/zsh-autosuggestions /home/Ketchum/.oh-my-zsh/plugins/zsh-autosuggestions
-sudo curl -LN "https://github.com/FSPNet/Pikachu/raw/master/conf/.zshrc" -o /home/Ketchum/.zshrc
+sudo curl -LN "https://github.com/lhmusic/Pikachu/raw/master/conf/.zshrc" -o /home/Ketchum/.zshrc
 
 sudo sed -i "s@/home/Ketchum:/bin/sh@/home/Ketchum:/bin/zsh@" /etc/passwd
 
 # Other
 echo 'soft nofile 65535\nhard nofile 65535' >> /etc/security/limits.conf
-sudo curl -LN "https://github.com/FSPNet/Pikachu/raw/master/conf/sysctl.conf" -o /etc/sysctl.conf
+sudo curl -LN "https://github.com/lhmusic/Pikachu/raw/master/conf/sysctl.conf" -o /etc/sysctl.conf
 sudo sysctl --system
 
 echoLog INFO "INIT Done."
