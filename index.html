@@ -28,16 +28,17 @@ echoLog (){
 
 if [ -z "$1" ] ;then
   echoLog ERROR "You must specify a hostname, like:"
-  echoLog GREEN "curl -sSL https://go.fspn.network | sudo bash -s [hostname]"
+  echoLog GREEN "curl -sSL https://go.rr.wtf | sudo bash -s [hostname]"
   exit
 fi
 
 # Hostname
 sid=$1
-echoLog INFO "Setting up hostname ecs-$sid.fspn.network..."
-hostname "ecs-$sid.fspn.network"
-echo -e "ecs-$sid.fspn.network" > /etc/hostname
-sed -i "s/$HOSTNAME/ecs-$sid.fspn.network/g" /etc/hosts
+echoLog INFO "Setting up hostname ecs-$sid.rr.wtf..."
+hostname "ecs-$sid.rr.wtf"
+echo -e "ecs-$sid.rr.wtf" > /etc/hostname
+sed -i "s/$HOSTNAME/ecs-$sid.
+.network/g" /etc/hosts
 echoLog INFO "Hostname Done."
 
 # BBR
@@ -78,10 +79,9 @@ sudo apt install -y \
      curl \
      software-properties-common \
      git
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
+curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   "deb [arch=amd64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
 sudo apt update
