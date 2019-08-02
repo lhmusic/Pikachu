@@ -98,12 +98,12 @@ docker-compose --version
 echoLog INFO "Docker Done."
 
 # 1Password
-ONEPASSWORD_VERSION='v0.5.4'
+ONEPASSWORD_VERSION='v0.5.7'
 echoLog INFO "Setting up 1Password CLI"
 sudo apt install curl jq pwgen gnupg unzip -y|| exit $?
 mkdir -p /usr/local/bin
 chmod 755 /usr/local/bin
-sudo curl -fSL "https://cache.agilebits.com/dist/1P/op/pkg/v0.5.4/op_linux_amd64_v0.5.4.zip" -o op.zip
+sudo curl -fSL "https://cache.agilebits.com/dist/1P/op/pkg/${ONEPASSWORD_VERSION}/op_linux_amd64_${ONEPASSWORD_VERSION}.zip" -o op.zip
 sudo unzip ~/op.zip -d /usr/local/bin -x op.sig && rm -rf ~/op.zip
 op --version
 
