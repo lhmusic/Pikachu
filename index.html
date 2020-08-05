@@ -78,9 +78,9 @@ sudo apt install -y \
      curl \
      software-properties-common \
      git
-curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+curl -fsSL http://mirrors.tencentyun.co/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository \
-   "deb [arch=amd64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu \
+   "deb [arch=amd64] http://mirrors.tencentyun.co/docker-ce/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
 sudo apt update
@@ -134,7 +134,7 @@ useradd Ketchum
 chage -d 0 Ketchum
 passwd -d Ketchum
 mkdir /home/Ketchum/.ssh/ -p
-sudo curl -LN "https://github.com/lhmusic/Ketchum/raw/master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
+sudo curl -LN "https://cdn.jsdelivr.net/gh/lhmusic/Ketchum@master/authorized_keys" -o /home/Ketchum/.ssh/authorized_keys
 chown Ketchum:Ketchum /home/Ketchum -R
 chmod 644 /home/Ketchum/.ssh/authorized_keys
 echo "Ketchum  ALL=(ALL:ALL) NOPASSWD :ALL" >> /etc/sudoers
@@ -167,13 +167,13 @@ sudo apt install zsh -y
 git clone https://github.com/robbyrussell/oh-my-zsh.git /home/Ketchum/.oh-my-zsh
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /home/Ketchum/.oh-my-zsh/plugins/zsh-syntax-highlighting
 git clone https://github.com/zsh-users/zsh-autosuggestions /home/Ketchum/.oh-my-zsh/plugins/zsh-autosuggestions
-sudo curl -LN "https://github.com/lhmusic/Pikachu/raw/master/conf/.zshrc" -o /home/Ketchum/.zshrc
+sudo curl -LN "https://cdn.jsdelivr.net/gh/lhmusic/Ketchum@master/conf/.zshrc" -o /home/Ketchum/.zshrc
 
 sudo sed -i "s@/home/Ketchum:/bin/sh@/home/Ketchum:/bin/zsh@" /etc/passwd
 
 # Other
 echo 'soft nofile 65535\nhard nofile 65535' >> /etc/security/limits.conf
-sudo curl -LN "https://github.com/lhmusic/Pikachu/raw/master/conf/sysctl.conf" -o /etc/sysctl.conf
+sudo curl -LN "https://cdn.jsdelivr.net/gh/lhmusic/Ketchum@master/conf/sysctl.conf" -o /etc/sysctl.conf
 sudo sysctl --system
 
 echoLog INFO "INIT Done."
